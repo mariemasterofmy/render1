@@ -57,18 +57,20 @@ os.makedirs(SIGNAL_DIR, exist_ok=True)
 def get_last_closed_1m_candle(symbol):
     url = f"https://fapi.binance.com/fapi/v1/klines?symbol={symbol}&interval=1m&limit=2"
     response = requests.get(url)
-try:
-    data = response.json()
-except Exception as e:
-    logging.error(f"❌ Failed to parse JSON from Binance. Raw text: {response.text}")
-    raise
 
-if isinstance(data, dict) and data.get("code") == -2:
-    logging.error(f"❌ Binance returned error -2: {data}")
-    raise ValueError(f"Binance error -2: {data}")
+    try:
+        data = response.json()
+    except Exception as e:
+        logging.error(f"❌ Failed to parse JSON from Binance. Raw text: {response.text}")
+        raise
+
+    if isinstance(data, dict) and data.get("code") == -2:
+        logging.error(f"❌ Binance returned error -2: {data}")
+        raise ValueError(f"Binance error -2: {data}")
 
     if len(data) < 2:
         raise ValueError(f"Not enough candle data returned for {symbol}")
+    
     last_candle = data[-2]
 
     ts_ms = int(last_candle[0])
@@ -94,6 +96,7 @@ if isinstance(data, dict) and data.get("code") == -2:
         "close": close_price,
         "volume": volume
     }
+
 # === END: Fetch Last Closed 1-Minute Candle ===
 
 # === BEGIN: Signal Generation Logic ===
